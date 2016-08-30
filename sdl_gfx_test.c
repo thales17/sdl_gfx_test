@@ -8,6 +8,8 @@ const int SCREEN_HEIGHT = 720;
 int fullscreen = 0;
 
 void draw(SDL_Renderer *renderer);
+void drawRandomLines(SDL_Renderer *renderer);
+void drawTest(SDL_Renderer *renderer);
 
 int main(int argc, char *args[]) {
   SDL_Window *window = NULL;
@@ -66,10 +68,16 @@ int main(int argc, char *args[]) {
 }
 
 void draw(SDL_Renderer *renderer) {
-  //clear the renderer
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
   
+  drawTest(renderer);
+  //drawRandomLines(renderer);
+
+  SDL_RenderPresent(renderer);
+}
+
+void drawTest(SDL_Renderer *renderer) {
   SDL_Rect rect;
   rect.x = 20;
   rect.y = 20;
@@ -81,6 +89,16 @@ void draw(SDL_Renderer *renderer) {
 
   filledCircleColor(renderer, 50, 50, 10, 0xFF0000FF);
   aacircleColor(renderer, 50, 50, 10, 0xFF0000FF);
+  thickLineColor(
+      renderer,
+      100,
+      100,
+      130,
+      130,
+      3,
+      0xFF0000FF
+  );
+}
 
-  SDL_RenderPresent(renderer);
+void drawRandomLines(SDL_Renderer *renderer) {  
 }

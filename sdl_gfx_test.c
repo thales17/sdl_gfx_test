@@ -1,19 +1,27 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
+
+#include <time.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
 int fullscreen = 0;
 
-void draw(SDL_Renderer *renderer);
-void drawRandomLines(SDL_Renderer *renderer);
-void drawTest(SDL_Renderer *renderer);
+void draw(SDL_Window *window, SDL_Renderer *renderer);
+void drawRandomLines(SDL_Window *window, SDL_Renderer *renderer);
+void drawTest(SDL_Window *window, SDL_Renderer *renderer);
 
 int main(int argc, char *args[]) {
+  time_t t;
   SDL_Window *window = NULL;
   SDL_Renderer *renderer = NULL;
+
+
+  /* Intialize random number generator */
+  srand((unsigned) time(&t));
 
   window = SDL_CreateWindow(
       "sdl_gfx_test",
@@ -58,7 +66,7 @@ int main(int argc, char *args[]) {
       }
     }
 
-    draw(renderer);
+    draw(window, renderer);
   }
   
   SDL_DestroyRenderer(renderer);  
@@ -67,17 +75,17 @@ int main(int argc, char *args[]) {
   return 0;
 }
 
-void draw(SDL_Renderer *renderer) {
+void draw(SDL_Window *window, SDL_Renderer *renderer) {
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
   
-  drawTest(renderer);
-  //drawRandomLines(renderer);
+  //drawTest(window, renderer);
+  drawRandomLines(window, renderer);
 
   SDL_RenderPresent(renderer);
 }
 
-void drawTest(SDL_Renderer *renderer) {
+void drawTest(SDL_Window *window, SDL_Renderer *renderer) {
   SDL_Rect rect;
   rect.x = 20;
   rect.y = 20;
@@ -100,5 +108,50 @@ void drawTest(SDL_Renderer *renderer) {
   );
 }
 
-void drawRandomLines(SDL_Renderer *renderer) {  
+void drawRandomLines(SDL_Window *window, SDL_Renderer *renderer) {
+  SDL_DisplayMode mode;
+  int padding = 10;
+  int thickness = 5;
+  Uint32 color = 0xFF0000FF;
+  
+  SDL_GetWindowDisplayMode(window, &mode);
+  thickLineColor(
+      renderer,
+      padding,
+      padding,
+      mode.w - padding,
+      padding,
+      thickness,
+      color
+  );
+
+  thickLineColor(
+      renderer,
+      mode.w - padding,
+      padding,
+      mode.w - padding,
+      mode.h - padding,
+      thickness,
+      color
+  );
+
+  thickLineColor(
+      renderer,
+      mode.w - padding,
+      mode.h - padding,
+      padding,
+      mode.h - padding,
+      thickness,
+      color
+  );
+
+  thickLineColor(
+      renderer,
+      padding,
+      mode.h - padding,
+      padding,
+      padding,
+      thickness,
+      color
+  );
 }

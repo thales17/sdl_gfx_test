@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 
+#include <math.h>
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,10 +10,16 @@ const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
 int fullscreen = 0;
+float t = 0.0;
+
+typedef struct point {
+  int x;
+  int y;
+} point;
 
 void draw(SDL_Window *window, SDL_Renderer *renderer);
-void drawRandomLines(SDL_Window *window, SDL_Renderer *renderer);
-void drawTest(SDL_Window *window, SDL_Renderer *renderer);
+void drawRandomLines(SDL_DisplayMode mode, SDL_Renderer *renderer);
+void drawTest(SDL_DisplayMode mode, SDL_Renderer *renderer);
 
 int main(int argc, char *args[]) {
   time_t t;
@@ -76,16 +83,22 @@ int main(int argc, char *args[]) {
 }
 
 void draw(SDL_Window *window, SDL_Renderer *renderer) {
+  SDL_DisplayMode mode;
+
+  SDL_GetWindowDisplayMode(window, &mode);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
   
-  //drawTest(window, renderer);
-  drawRandomLines(window, renderer);
+  //drawTest(mode, renderer);
+  drawRandomLines(mode, renderer);
 
   SDL_RenderPresent(renderer);
+
+  t += 0.00833;
+  t = (t > 1) ? 0 : t;
 }
 
-void drawTest(SDL_Window *window, SDL_Renderer *renderer) {
+void drawTest(SDL_DisplayMode mode, SDL_Renderer *renderer) {
   SDL_Rect rect;
   rect.x = 20;
   rect.y = 20;
@@ -108,49 +121,26 @@ void drawTest(SDL_Window *window, SDL_Renderer *renderer) {
   );
 }
 
-void drawRandomLines(SDL_Window *window, SDL_Renderer *renderer) {
-  SDL_DisplayMode mode;
+void drawRandomLines(SDL_DisplayMode mode, SDL_Renderer *renderer) {
   int padding = 10;
   int thickness = 5;
   Uint32 color = 0xFF0000FF;
-  
-  SDL_GetWindowDisplayMode(window, &mode);
-  thickLineColor(
-      renderer,
-      padding,
-      padding,
-      mode.w - padding,
-      padding,
-      thickness,
-      color
-  );
+  point points[5] = {
+    { .x = padding, .y = padding },
+    { .x = mode.w - padding, .y = padding },
+    {. x = mode.w - padding, .y = mode.h - padding },
+    { .x = padding, .y = mode.h - padding },
+    { .x = padding, .y = padding }
+  };
+  point endPoint = {
+    .x = points[0].x + (int)roundf((points[1].x - points[0].x) * t),
+    .y = points[0].y + (int)roundf((points[1].y - points[0].y) * t)
+  };
 
   thickLineColor(
       renderer,
-      mode.w - padding,
-      padding,
-      mode.w - padding,
-      mode.h - padding,
-      thickness,
-      color
-  );
-
-  thickLineColor(
-      renderer,
-      mode.w - padding,
-      mode.h - padding,
-      padding,
-      mode.h - padding,
-      thickness,
-      color
-  );
-
-  thickLineColor(
-      renderer,
-      padding,
-      mode.h - padding,
-      padding,
-      padding,
+      points[0].x, points[0].y,
+      endPoint.x, endPoint.y,
       thickness,
       color
   );

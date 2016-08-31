@@ -17,6 +17,11 @@ typedef struct point {
   int y;
 } point;
 
+typedef struct line {
+  point p1;
+  point p2;
+} line;
+
 void draw(SDL_Window *window, SDL_Renderer *renderer);
 void drawRandomLines(SDL_DisplayMode mode, SDL_Renderer *renderer);
 void drawTest(SDL_DisplayMode mode, SDL_Renderer *renderer);
@@ -93,8 +98,8 @@ void draw(SDL_Window *window, SDL_Renderer *renderer) {
   drawRandomLines(mode, renderer);
 
   SDL_RenderPresent(renderer);
-
-  t += 0.00833;
+  
+  t += 0.00416;
   t = (t > 1) ? 0 : t;
 }
 
@@ -125,23 +130,50 @@ void drawRandomLines(SDL_DisplayMode mode, SDL_Renderer *renderer) {
   int padding = 10;
   int thickness = 5;
   Uint32 color = 0xFF0000FF;
-  point points[5] = {
-    { .x = padding, .y = padding },
-    { .x = mode.w - padding, .y = padding },
-    {. x = mode.w - padding, .y = mode.h - padding },
-    { .x = padding, .y = mode.h - padding },
-    { .x = padding, .y = padding }
+  int numLines = 4;
+  line lines[4] = {
+    { .p1 = { .x = padding, .y = padding},
+      .p2 = { .x = mode.w - padding, .y = padding }
+    },
+    {
+      .p1 = { .x = mode.w -padding, .y = padding },
+      .p2 = { .x = mode.w - padding, .y = mode.h - padding }
+    },
+    {
+      .p1 = { .x = mode.w - padding, .y = mode.h - padding },
+      .p2 = { .x = padding, .y = mode.h - padding }
+    },
+    {
+      .p1 = { .x = padding, .y = mode.h - padding },
+      .p2 = { .x = padding, .y = padding }
+    }
   };
-  point endPoint = {
-    .x = points[0].x + (int)roundf((points[1].x - points[0].x) * t),
-    .y = points[0].y + (int)roundf((points[1].y - points[0].y) * t)
-  };
-
-  thickLineColor(
-      renderer,
-      points[0].x, points[0].y,
-      endPoint.x, endPoint.y,
-      thickness,
-      color
-  );
+  
+  for(int i = 0; i < numLines; i++) {
+    float segT = 1.0 / (float)numLines;
+    int segIndex = (int) (t / segT);
+    point p1 = lines[i].p1;
+    point p2 = lines[i].p2;
+    //printf("segT: %f\n", segT);
+    //printf("segIndex: %d\n", segIndex);
+    
+    if(i <= segIndex) {
+      if(i == segIndex) {
+        float localT = (float)fmod(t, segT);
+        float p = localT / segT;
+        //printf("localT: %f\n", localT);
+        //printf("p: %f\n", p);
+        p2.x = p1.x + (int)roundf((p2.x - p1.x) * p);
+        p2.y = p1.y + (int)roundf((p2.y - p1.y) * p);
+      }
+      
+      thickLineColor(
+          renderer,
+          p1.x, p1.y,
+          p2.x, p2.y,
+          thickness,
+          color
+      );
+    }
+  }
 }

@@ -23,8 +23,8 @@ typedef struct line {
 } line;
 
 void draw(SDL_Window *window, SDL_Renderer *renderer);
-void drawRandomLines(SDL_DisplayMode mode, SDL_Renderer *renderer);
-void drawTest(SDL_DisplayMode mode, SDL_Renderer *renderer);
+void drawRandomLines(int w, int h, SDL_Renderer *renderer);
+void drawTest(SDL_Renderer *renderer);
 
 int main(int argc, char *args[]) {
   time_t t;
@@ -89,13 +89,18 @@ int main(int argc, char *args[]) {
 
 void draw(SDL_Window *window, SDL_Renderer *renderer) {
   SDL_DisplayMode mode;
-
-  SDL_GetWindowDisplayMode(window, &mode);
+  int w = SCREEN_WIDTH;
+  int h = SCREEN_HEIGHT;
+  if(fullscreen) {
+    SDL_GetWindowDisplayMode(window, &mode);
+    w = mode.w;
+    h = mode.h;
+  }
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
   SDL_RenderClear(renderer);
   
-  //drawTest(mode, renderer);
-  drawRandomLines(mode, renderer);
+  //drawTest(renderer);
+  drawRandomLines(w, h, renderer);
 
   SDL_RenderPresent(renderer);
   
@@ -103,7 +108,7 @@ void draw(SDL_Window *window, SDL_Renderer *renderer) {
   t = (t > 1) ? 0 : t;
 }
 
-void drawTest(SDL_DisplayMode mode, SDL_Renderer *renderer) {
+void drawTest(SDL_Renderer *renderer) {
   SDL_Rect rect;
   rect.x = 20;
   rect.y = 20;
@@ -126,25 +131,25 @@ void drawTest(SDL_DisplayMode mode, SDL_Renderer *renderer) {
   );
 }
 
-void drawRandomLines(SDL_DisplayMode mode, SDL_Renderer *renderer) {
+void drawRandomLines(int w, int h, SDL_Renderer *renderer) {
   int padding = 10;
   int thickness = 5;
   Uint32 color = 0xFF0000FF;
   int numLines = 4;
   line lines[4] = {
     { .p1 = { .x = padding, .y = padding},
-      .p2 = { .x = mode.w - padding, .y = padding }
+      .p2 = { .x = w - padding, .y = padding }
     },
     {
-      .p1 = { .x = mode.w -padding, .y = padding },
-      .p2 = { .x = mode.w - padding, .y = mode.h - padding }
+      .p1 = { .x = w -padding, .y = padding },
+      .p2 = { .x = w - padding, .y = h - padding }
     },
     {
-      .p1 = { .x = mode.w - padding, .y = mode.h - padding },
-      .p2 = { .x = padding, .y = mode.h - padding }
+      .p1 = { .x = w - padding, .y = h - padding },
+      .p2 = { .x = padding, .y = h - padding }
     },
     {
-      .p1 = { .x = padding, .y = mode.h - padding },
+      .p1 = { .x = padding, .y = h - padding },
       .p2 = { .x = padding, .y = padding }
     }
   };

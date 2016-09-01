@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MAZE_LINE_COUNT 500
+
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
@@ -22,11 +24,14 @@ typedef struct line {
 int fullscreen = 0;
 float t = 0.0;
 line rLines[100];
+line mLines[MAZE_LINE_COUNT];
 
 void boxLines(line lines[], int x, int y, int w, int h);
 void randomLines(line lines[], int count, int x, int y, int w, int h);
+void mazeLines(line lines[], int count, int x, int y, int w, int h);
+
 void draw(SDL_Window *window, SDL_Renderer *renderer);
-void drawLines(line lines[], int numLines, SDL_Renderer *renderer);
+void drawLines(line lines[], int numLines, int thickness, int r, int g, int b, int a, SDL_Renderer *renderer);
 void drawTest(SDL_Renderer *renderer);
 
 int main(int argc, char *args[]) {
@@ -38,6 +43,7 @@ int main(int argc, char *args[]) {
   /* Intialize random number generator */
   srand((unsigned) time(&t));
   randomLines(rLines, 100, 200, 200, 100, 100);
+  mazeLines(mLines, MAZE_LINE_COUNT, 20, 20, SCREEN_WIDTH - 40, SCREEN_HEIGHT - 40);
 
   window = SDL_CreateWindow(
       "sdl_gfx_test",
@@ -71,12 +77,17 @@ int main(int argc, char *args[]) {
         if(event.key.keysym.sym == SDLK_q) {
           break;
         } else if(event.key.keysym.sym == SDLK_f) {
+          t = 0;
           if(!fullscreen) {
             SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+            SDL_DisplayMode mode;
+            SDL_GetWindowDisplayMode(window, &mode);
             fullscreen = 1;
+            mazeLines(mLines, MAZE_LINE_COUNT, 20, 20, mode.w - 40, mode.h - 40);
           } else {
             SDL_SetWindowFullscreen(window, 0);
             fullscreen = 0;
+            mazeLines(mLines, MAZE_LINE_COUNT, 20, 20, SCREEN_WIDTH - 40, SCREEN_HEIGHT - 40);
           }
         }
       }
@@ -107,17 +118,22 @@ void draw(SDL_Window *window, SDL_Renderer *renderer) {
 
   line bLines[4];
   boxLines(bLines, 10, 10, w - 20, h - 20);
-  drawLines(bLines, 4, renderer);
+  //drawLines(bLines, 4, 2, 0, 0, 255, 255, renderer);
 
   boxLines(bLines, 100, 100, 100, 100);
-  drawLines(bLines, 4, renderer);
+  //drawLines(bLines, 4, 5, 255, 0, 0, 255, renderer);
 
-  drawLines(rLines, 100, renderer);
+  //drawLines(rLines, 100, 3, 255, 0, 0, 50, renderer);
+  
+  drawLines(mLines, 500, 3, 0, 255, 0, 40, renderer);
 
   SDL_RenderPresent(renderer);
   
-  t += 0.00416;
-  t = (t > 1) ? 0 : t;
+  t += 1.0 / 480.0;
+  if(t > 1) {
+    t = 0;
+    mazeLines(mLines, MAZE_LINE_COUNT, 20, 20, w - 40, h - 40);
+  }
 }
 
 void drawTest(SDL_Renderer *renderer) {
@@ -132,14 +148,18 @@ void drawTest(SDL_Renderer *renderer) {
 
   filledCircleColor(renderer, 50, 50, 10, 0xFF0000FF);
   aacircleColor(renderer, 50, 50, 10, 0xFF0000FF);
-  thickLineColor(
+
+  thickLineRGBA(
       renderer,
       100,
       100,
       130,
       130,
       3,
-      0xFF0000FF
+      0,
+      255,
+      0,
+      255
   );
 }
 
@@ -194,10 +214,39 @@ void randomLines(line lines[], int count, int x, int y, int w, int h) {
   }
 }
 
-void drawLines(line lines[], int numLines, SDL_Renderer *renderer) {
-  int padding = 10;
-  int thickness = 5;
-  Uint32 color = 0xFF0000FF;
+void mazeLines(line lines[], int count, int x, int y, int w, int h) {
+  point lastPoint;
+  lastPoint.x = x;
+  lastPoint.y = y;
+
+  int xDir = 1;
+  int yDir = 1;
+
+  for(int i = 0; i < count; i++) {
+    line l;
+    l.p1 = lastPoint;
+    int moveX = rand() % 2;
+    if(moveX) {
+      l.p2.x = l.p1.x + (rand() % (w / 10) * xDir);
+      l.p2.y = l.p1.y;
+    } else {
+      l.p2.x = l.p1.x;
+      l.p2.y = l.p1.y + (rand() % (h / 10) * yDir);
+    }
+    lines[i] = l;
+    lastPoint = l.p2;
+
+    if(l.p2.x + xDir * (w / 10) > (x + w) || l.p2.x + xDir * (w / 10) < x) {
+      xDir *= -1;
+    }
+
+    if(l.p2.y + yDir * (h / 10) > (y + h) || l.p2.y + yDir * (h / 10) < y) {
+      yDir *= -1;
+    }
+  }
+}
+
+void drawLines(line lines[], int numLines, int thickness, int r, int g, int b, int a, SDL_Renderer *renderer) {
   
   for(int i = 0; i < numLines; i++) {
     float segT = 1.0 / (float)numLines;
@@ -217,13 +266,15 @@ void drawLines(line lines[], int numLines, SDL_Renderer *renderer) {
         p2.y = p1.y + (int)roundf((p2.y - p1.y) * p);
       }
       
-      thickLineColor(
+      if(thickLineRGBA(
           renderer,
           p1.x, p1.y,
           p2.x, p2.y,
           thickness,
-          color
-      );
+          r, g, b, a
+      ) != 0) {
+        printf("thickLineColor error %s", SDL_GetError());
+      }
     }
   }
 }

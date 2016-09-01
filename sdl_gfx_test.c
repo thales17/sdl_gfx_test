@@ -24,7 +24,7 @@ float t = 0.0;
 line rLines[100];
 
 void boxLines(line lines[], int x, int y, int w, int h);
-void randomLines(line lines[], int count, int w, int h);
+void randomLines(line lines[], int count, int x, int y, int w, int h);
 void draw(SDL_Window *window, SDL_Renderer *renderer);
 void drawLines(line lines[], int numLines, SDL_Renderer *renderer);
 void drawTest(SDL_Renderer *renderer);
@@ -37,7 +37,7 @@ int main(int argc, char *args[]) {
 
   /* Intialize random number generator */
   srand((unsigned) time(&t));
-  randomLines(rLines, 100, 1000, 1000);
+  randomLines(rLines, 100, 200, 200, 100, 100);
 
   window = SDL_CreateWindow(
       "sdl_gfx_test",
@@ -174,20 +174,20 @@ void boxLines(line lines[], int x, int y, int w, int h) {
   lines[3] = l4;
 }
 
-void randomLines(line lines[], int count, int w, int h) {
+void randomLines(line lines[], int count, int x, int y, int w, int h) {
   point lastPoint;
-  lastPoint.x = rand() % w;
-  lastPoint.y = rand() % h;
+  lastPoint.x = x + rand() % (w - x);
+  lastPoint.y = y + rand() % (h - y);
   for(int i = 0; i < count; i++) {
     line l;
     l.p1 = lastPoint;
     int moveX = rand() % 2;
     if(moveX) {
-      l.p2.x = rand() % w;
-      l.p2.y = l.p1.x;
+      l.p2.x = x + rand() % (w - x);
+      l.p2.y = l.p1.y;
     } else {
       l.p2.x = l.p1.x;
-      l.p2.y = rand() % h;
+      l.p2.y = y + rand() % (h - y);
     }
     lines[i] = l;
     lastPoint = l.p2;

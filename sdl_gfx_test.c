@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAZE_LINE_COUNT 500
+#define MAZE_LINE_COUNT 1000
 
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
@@ -125,11 +125,11 @@ void draw(SDL_Window *window, SDL_Renderer *renderer) {
 
   //drawLines(rLines, 100, 3, 255, 0, 0, 50, renderer);
   
-  drawLines(mLines, 500, 3, 0, 255, 0, 40, renderer);
+  drawLines(mLines, MAZE_LINE_COUNT, 3, 0, 255, 0, 40, renderer);
 
   SDL_RenderPresent(renderer);
   
-  t += 1.0 / 480.0;
+  t += 1.0 / 960.0;
   if(t > 1) {
     t = 0;
     mazeLines(mLines, MAZE_LINE_COUNT, 20, 20, w - 40, h - 40);
